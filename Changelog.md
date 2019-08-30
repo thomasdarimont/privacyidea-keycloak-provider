@@ -1,5 +1,9 @@
 # Changelog
 
+### v1.0 - 
+
+* Fixed some issues, in order to make this version stable
+
 ### v0.2 - 2019-05-22
 
 * Add trigger challenge
