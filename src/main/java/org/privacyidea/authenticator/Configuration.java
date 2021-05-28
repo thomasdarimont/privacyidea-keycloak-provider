@@ -38,6 +38,7 @@ import static org.privacyidea.authenticator.Const.CONFIG_VERIFY_SSL;
 import static org.privacyidea.authenticator.Const.DEFAULT_POLLING_ARRAY;
 import static org.privacyidea.authenticator.Const.DEFAULT_POLLING_INTERVAL;
 import static org.privacyidea.authenticator.Const.TRUE;
+import static org.privacyidea.authenticator.Const.FALSE;
 
 class Configuration {
 
@@ -59,20 +60,20 @@ class Configuration {
 
     Configuration(Map<String, String> configMap) {
         this.serverURL = configMap.get(CONFIG_SERVER);
-        this.realm = configMap.get(CONFIG_REALM) == null ? "" : configMap.get(CONFIG_REALM);
-        this.doSSLVerify = configMap.get(CONFIG_VERIFY_SSL) != null && configMap.get(CONFIG_VERIFY_SSL).equals(TRUE);
-        this.doTriggerChallenge = configMap.get(CONFIG_TRIGGER_CHALLENGE) != null && configMap.get(CONFIG_TRIGGER_CHALLENGE).equals(TRUE);
-        this.serviceAccountName = configMap.get(CONFIG_SERVICE_ACCOUNT) == null ? "" : configMap.get(CONFIG_SERVICE_ACCOUNT);
-        this.serviceAccountPass = configMap.get(CONFIG_SERVICE_PASS) == null ? "" : configMap.get(CONFIG_SERVICE_PASS);
-        this.serviceAccountRealm = configMap.get(CONFIG_SERVICE_REALM) == null ? "" : configMap.get(CONFIG_SERVICE_REALM);
+        this.realm = configMap.getOrDefault(CONFIG_REALM, "");
+        this.doSSLVerify = configMap.getOrDefault(CONFIG_VERIFY_SSL, FALSE).equals(TRUE);
+        this.doTriggerChallenge = configMap.getOrDefault(CONFIG_TRIGGER_CHALLENGE, FALSE).equals(TRUE);
+        this.serviceAccountName = configMap.getOrDefault(CONFIG_SERVICE_ACCOUNT, "");
+        this.serviceAccountPass = configMap.getOrDefault(CONFIG_SERVICE_PASS, "");
+        this.serviceAccountRealm = configMap.getOrDefault(CONFIG_SERVICE_REALM, "");
 
-        this.doEnrollToken = configMap.get(CONFIG_ENROLL_TOKEN) != null && configMap.get(CONFIG_ENROLL_TOKEN).equals(TRUE);
-        this.doSendPassword = configMap.get(CONFIG_SEND_PASSWORD) != null && configMap.get(CONFIG_SEND_PASSWORD).equals(TRUE);
+        this.doEnrollToken = configMap.getOrDefault(CONFIG_ENROLL_TOKEN, FALSE).equals(TRUE);
+        this.doSendPassword = configMap.getOrDefault(CONFIG_SEND_PASSWORD, FALSE).equals(TRUE);
         // PI uses all lowercase letters for token types so change it here to match it internally
-        this.prefTokenType = (configMap.get(CONFIG_PREF_TOKENTYPE) == null ? TOKEN_TYPE_OTP : configMap.get(CONFIG_PREF_TOKENTYPE)).toLowerCase();
-        this.enrollingTokenType = (configMap.get(CONFIG_ENROLL_TOKENTYPE) == null ? "" : configMap.get(CONFIG_ENROLL_TOKENTYPE)).toLowerCase();
+        this.prefTokenType = configMap.getOrDefault(CONFIG_PREF_TOKENTYPE, TOKEN_TYPE_OTP).toLowerCase();
+        this.enrollingTokenType = configMap.getOrDefault(CONFIG_ENROLL_TOKENTYPE, "").toLowerCase();
 
-        this.doLog = configMap.get(CONFIG_DO_LOG) != null && configMap.get(CONFIG_DO_LOG).equals(TRUE);
+        this.doLog = configMap.getOrDefault(CONFIG_DO_LOG, FALSE).equals(TRUE);
 
         String excludedGroupsStr = configMap.get(CONFIG_EXCLUDED_GROUPS);
         if (excludedGroupsStr != null) {
@@ -81,20 +82,23 @@ class Configuration {
 
         // Set intervals to either default or configured values
         String s = configMap.get(CONFIG_PUSH_INTERVAL);
-        if (s != null) {
-            List<String> strPollingIntervals = Arrays.asList(s.split(","));
-            if (!strPollingIntervals.isEmpty()) {
-                this.pollingInterval.clear();
-                for (String str : strPollingIntervals) {
-                    try {
-                        this.pollingInterval.add(Integer.parseInt(str));
-                    } catch (NumberFormatException e) {
-                        this.pollingInterval.add(DEFAULT_POLLING_INTERVAL);
-                    }
-                }
-            }
-        } else {
+        if (s == null) {
             this.pollingInterval.addAll(DEFAULT_POLLING_ARRAY);
+            return;
+        }
+
+        List<String> strPollingIntervals = Arrays.asList(s.split(","));
+        if (strPollingIntervals.isEmpty()) {
+            return;
+        }
+
+        this.pollingInterval.clear();
+        for (String str : strPollingIntervals) {
+            try {
+                this.pollingInterval.add(Integer.parseInt(str));
+            } catch (NumberFormatException e) {
+                this.pollingInterval.add(DEFAULT_POLLING_INTERVAL);
+            }
         }
     }
 

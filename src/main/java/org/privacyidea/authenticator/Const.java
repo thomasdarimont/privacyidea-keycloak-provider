@@ -33,6 +33,7 @@ final class Const {
     static final String DEFAULT_OTP_MESSAGE_DE = "Bitte geben Sie ihr Einmalpassword ein!";
 
     static final String TRUE = "true";
+    static final String FALSE = "false";
 
     static final String HEADER_ACCEPT_LANGUAGE = "accept-language";
 

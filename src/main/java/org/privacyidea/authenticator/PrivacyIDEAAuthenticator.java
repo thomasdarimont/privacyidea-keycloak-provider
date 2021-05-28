@@ -268,7 +268,6 @@ public class PrivacyIDEAAuthenticator implements org.keycloak.authentication.Aut
                 .setAttribute(FORM_UI_LANGUAGE, uiLanguage);
 
         boolean didTrigger = false; // To not show the error message if something was triggered
-        Future<PIResponse> futureResponse = null;
         PIResponse response = null;
 
         // Determine to which endpoint we send the data from the form based on the mode the form was in
