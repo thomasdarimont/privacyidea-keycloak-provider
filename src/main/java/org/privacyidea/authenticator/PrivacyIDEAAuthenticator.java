@@ -206,11 +206,8 @@ public class PrivacyIDEAAuthenticator implements org.keycloak.authentication.Aut
     private boolean isUserMemberOfExcludedGroup(AuthenticationFlowContext context, Configuration config, UserModel user) {
         // Check if the current user is member of an excluded group
         for (GroupModel groupModel : user.getGroups()) {
-            for (String excludedGroup : config.excludedGroups()) {
-                if (excludedGroup.equals(groupModel.getName())) {
-
-                    return true;
-                }
+            if (config.excludedGroups().contains(groupModel.getName())) {
+                return true;
             }
         }
         return false;
@@ -242,11 +239,12 @@ public class PrivacyIDEAAuthenticator implements org.keycloak.authentication.Aut
         String otpMessage = formData.getFirst(FORM_OTP_MESSAGE);
         String tokenTypeChanged = formData.getFirst(FORM_MODE_CHANGED);
         String uiLanguage = formData.getFirst(FORM_UI_LANGUAGE);
-        String transactionID = context.getAuthenticationSession().getAuthNote(AUTH_NOTE_TRANSACTION_ID);
+        AuthenticationSessionModel authSession = context.getAuthenticationSession();
+        String transactionID = authSession.getAuthNote(AUTH_NOTE_TRANSACTION_ID);
         String currentUserName = context.getUser().getUsername();
 
         // Reuse the accept language for any requests made in this step
-        String acceptLanguage = context.getAuthenticationSession().getAuthNote(AUTH_NOTE_ACCEPT_LANGUAGE);
+        String acceptLanguage = authSession.getAuthNote(AUTH_NOTE_ACCEPT_LANGUAGE);
         Map<String, String> languageHeader = Collections.singletonMap(HEADER_ACCEPT_LANGUAGE, acceptLanguage);
 
         String webAuthnSignRequest = formData.getFirst(FORM_WEBAUTHN_SIGN_REQUEST);
@@ -306,7 +304,7 @@ public class PrivacyIDEAAuthenticator implements org.keycloak.authentication.Aut
             if (!response.multiChallenge().isEmpty()) {
                 // A challenge was triggered, display its message and save the transaction id in the session
                 otpMessage = response.message;
-                context.getAuthenticationSession().setAuthNote(AUTH_NOTE_TRANSACTION_ID, response.transactionID);
+                authSession.setAuthNote(AUTH_NOTE_TRANSACTION_ID, response.transactionID);
                 didTrigger = true;
             } else {
                 // The authentication failed without triggering anything so the things that have been sent before were wrong
@@ -316,9 +314,9 @@ public class PrivacyIDEAAuthenticator implements org.keycloak.authentication.Aut
 
         // The authCounter is also used to determine the polling interval for push
         // If the authCounter is bigger than the size of the polling interval list, repeat the lists last value
-        int authCounter = Integer.parseInt(context.getAuthenticationSession().getAuthNote(AUTH_NOTE_AUTH_COUNTER)) + 1;
-        authCounter = (authCounter >= config.pollingInterval().size() ? config.pollingInterval().size() - 1 : authCounter);
-        context.getAuthenticationSession().setAuthNote(AUTH_NOTE_AUTH_COUNTER, Integer.toString(authCounter));
+        int authCounter = Integer.parseInt(authSession.getAuthNote(AUTH_NOTE_AUTH_COUNTER)) + 1;
+        authCounter = authCounter >= config.pollingInterval().size() ? config.pollingInterval().size() - 1 : authCounter;
+        authSession.setAuthNote(AUTH_NOTE_AUTH_COUNTER, Integer.toString(authCounter));
 
         // The message variables could be overwritten if a challenge was triggered. Therefore, add them here at the end
         form.setAttribute(FORM_POLL_INTERVAL, config.pollingInterval().get(authCounter))
