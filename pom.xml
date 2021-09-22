@@ -34,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <privacyidea-sdk.version>v0.3</privacyidea-sdk.version>
-        <keycloak.version>12.0.4</keycloak.version>
+        <keycloak.version>15.0.2</keycloak.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>
     </properties>
 
